@@ -26,12 +26,19 @@ async def alice_chatgpt(req: Request):
             "version": body.get("version", "1.0")
         }
 
-    # Создание новой сессии или очистка по таймауту
+    # Создание новой сесссии или очистка по таймауту
     if not session or current_time - session['last_interaction'] > SESSION_TIMEOUT:
         user_sessions[user_id] = {'history': [], 'last_interaction': current_time, 'last_request': current_time}
     else:
         user_sessions[user_id]['last_interaction'] = current_time
         user_sessions[user_id]['last_request'] = current_time
+
+    # Пустой ввод (при запуске навыка)
+    if not user_text.strip():
+        return {
+            "response": {"text": "Спрашивай", "end_session": False},
+            "version": body.get("version", "1.0")
+        }
 
     # Команда очистки истории
     if "сотри историю" in user_text.lower():
