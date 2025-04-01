@@ -2,9 +2,8 @@ from fastapi import FastAPI, Request
 import openai
 import os
 
+client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 app = FastAPI()
-
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
 @app.post("/")
 async def alice_chatgpt(req: Request):
@@ -20,14 +19,12 @@ async def alice_chatgpt(req: Request):
             "version": body["version"]
         }
 
-    chatgpt_resp = openai.ChatCompletion.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "user", "content": user_text}
-        ]
+    response = client.chat.completions.create(
+        model="gpt-4o",  # или "gpt-3.5-turbo"
+        messages=[{"role": "user", "content": user_text}]
     )
 
-    answer = chatgpt_resp.choices[0].message.content.strip()
+    answer = response.choices[0].message.content.strip()
 
     return {
         "response": {
