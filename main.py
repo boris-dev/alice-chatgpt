@@ -1,35 +1,40 @@
 from fastapi import FastAPI, Request
-import openai
 import os
+from openai import OpenAI
 
-client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 app = FastAPI()
 
 @app.post("/")
 async def alice_chatgpt(req: Request):
     body = await req.json()
-    user_text = body["request"]["original_utterance"]
+    user_text = body["request"].get("original_utterance", "")
 
-    if not user_text:
+    if not user_text.strip():
         return {
             "response": {
-                "text": "Привет! Что хочешь узнать?",
+                "text": "Чем могу помочь?",
                 "end_session": False
             },
-            "version": body["version"]
+            "version": body.get("version", "1.0")
         }
 
-    response = client.chat.completions.create(
-        model="gpt-4o",  # или "gpt-3.5-turbo"
-        messages=[{"role": "user", "content": user_text}]
-    )
-
-    answer = response.choices[0].message.content.strip()
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "Отвечай коротко и понятно"},
+                {"role": "user", "content": user_text}
+            ]
+        )
+        answer = response.choices[0].message.content.strip()
+    except Exception as e:
+        answer = "Произошла ошибка при обращении к ChatGPT."
 
     return {
         "response": {
             "text": answer,
             "end_session": False
         },
-        "version": body["version"]
+        "version": body.get("version", "1.0")
     }
