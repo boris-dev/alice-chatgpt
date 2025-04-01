@@ -33,11 +33,23 @@ async def alice_chatgpt(req: Request):
         user_sessions[user_id]['last_interaction'] = current_time
         user_sessions[user_id]['last_request'] = current_time
 
-    # Обработка команды очистки истории
+    # Команда очистки истории
     if "сотри историю" in user_text.lower():
         user_sessions[user_id]['history'] = []
         return {
             "response": {"text": "История очищена!", "end_session": False},
+            "version": body.get("version", "1.0")
+        }
+
+    # Команда показа контекста
+    if "контекст" in user_text.lower():
+        user_messages = [msg['content'] for msg in user_sessions[user_id]['history'] if msg['role'] == 'user']
+        if not user_messages:
+            context_text = "Контекст пуст."
+        else:
+            context_text = "Ты спрашивал: " + "; ".join(user_messages)
+        return {
+            "response": {"text": context_text, "end_session": False},
             "version": body.get("version", "1.0")
         }
 
