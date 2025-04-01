@@ -36,6 +36,7 @@ async def alice_chatgpt(req: Request):
     # Команда очистки истории
     if "сотри историю" in user_text.lower():
         user_sessions[user_id]['history'] = []
+        print(f"[LOG] USER_ID={user_id} | COMMAND=сотри историю")
         return {
             "response": {"text": "История очищена!", "end_session": False},
             "version": body.get("version", "1.0")
@@ -48,6 +49,7 @@ async def alice_chatgpt(req: Request):
             context_text = "Контекст пуст."
         else:
             context_text = "Ты спрашивал: " + "; ".join(user_messages)
+        print(f"[LOG] USER_ID={user_id} | COMMAND=контекст | MESSAGES={user_messages}")
         return {
             "response": {"text": context_text, "end_session": False},
             "version": body.get("version", "1.0")
@@ -64,6 +66,8 @@ async def alice_chatgpt(req: Request):
         user_sessions[user_id]['history'].append({"role": "assistant", "content": answer})
     except Exception as e:
         answer = "Произошла ошибка при обращении к ChatGPT."
+
+    print(f"[LOG] USER_ID={user_id} | Q: {user_text} | A: {answer}")
 
     return {
         "response": {"text": answer, "end_session": False},
